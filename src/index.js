@@ -12,10 +12,10 @@ var DATE_FORMAT = 'YYYY-MM-DD';
 var config = {
     // Maximum time diff between 2 subsequent commits in minutes which are
     // counted to be in the same coding "session"
-    maxCommitDiffInMinutes: 2 * 60,
+    maxCommitDiffInMinutes: 60,
 
     // How many minutes should be added for the first commit of coding session
-    firstCommitAdditionInMinutes: 2 * 60,
+    firstCommitAdditionInMinutes: 30,
 
     // Include commits since time x
     since: 'always',
@@ -101,8 +101,8 @@ function main() {
 
 function exitIfShallow() {
     if (fs.existsSync(".git/shallow")) {
-        console.log("Cannot analyze shallow copies!");
-        console.log("Please run git fetch --unshallow before continuing!");
+        console.error("Cannot analyze shallow copies!");
+        console.error("Please run git fetch --unshallow before continuing!");
         process.exit(1);
     }
 }
@@ -275,8 +275,6 @@ function estimateHours(dates) {
         }
         lastDate = date;
     });
-
-    console.log(currentMinutes);
 
     return currentMinutes / 60;
 }
