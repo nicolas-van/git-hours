@@ -255,33 +255,30 @@ function mergeDefaultsWithArgs(conf) {
 
 // Estimates spent working hours based on commit dates
 function estimateHours(dates) {
-    if (dates.length < 2) {
-        return 0;
-    }
 
     // Oldest commit first, newest last
     var sortedDates = dates.sort(function(a, b) {
         return a - b;
     });
-    var allButLast = _.take(sortedDates, sortedDates.length - 1);
-
-    var totalHours = _.reduce(allButLast, function(hours, date, index) {
-        var nextDate = sortedDates[index + 1];
-        var diffInMinutes = (nextDate - date) / 1000 / 60;
-
-        // Check if commits are counted to be in same coding session
-        if (diffInMinutes < config.maxCommitDiffInMinutes) {
-            return hours + diffInMinutes / 60;
+    var currentMinutes = config.firstCommitAdditionInMinutes;
+    var lastDate = null;
+    _.forEach(sortedDates, function(date) {
+        if (lastDate === null) {
+            lastDate = date;
+            return;
         }
+        var diffInMinutes = (date - lastDate) / 1000 / 60;
+        if (diffInMinutes < config.maxCommitDiffInMinutes) {
+            currentMinutes += diffInMinutes;
+        } else {
+            currentMinutes += Math.min(diffInMinutes, config.firstCommitAdditionInMinutes);
+        }
+        lastDate = date;
+    });
 
-        // The date difference is too big to be inside single coding session
-        // The work of first commit of a session cannot be seen in git history,
-        // so we make a blunt estimate of it
-        return hours + config.firstCommitAdditionInMinutes / 60;
+    console.log(currentMinutes);
 
-    }, 0);
-
-    return Math.round(totalHours);
+    return currentMinutes / 60;
 }
 
 // Promisify nodegit's API of getting all commits in repository
